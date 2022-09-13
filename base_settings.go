@@ -20,9 +20,9 @@ const (
 )
 
 func ConnectingToTheBase () *pgxpool.Pool{
-	// Подключаемся к базе
+	// Connecting to the base
 	databaseUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", username, password, host, port, db_name)
-	// Инициализируем курсор соединения
+	// Initializing the connection cursor
 	cursor, err := pgxpool.Connect(context.Background(), databaseUrl)
 
 	if err != nil {
@@ -32,7 +32,7 @@ func ConnectingToTheBase () *pgxpool.Pool{
 }
 
 func CreateBaseOrDoNothing (cursor *pgxpool.Pool) {
-	// Создаём таблицу в случае её отсутствия
+	// Create a table if it doesn't exist
 
 	_, err := cursor.Exec(context.Background(),
 		"create table if not exists Companies" +
@@ -65,7 +65,7 @@ func CreateBaseOrDoNothing (cursor *pgxpool.Pool) {
 }
 
 func AddingDataToDb (tags map[string]string, tagsAddress map[string][]string, companyScope string, cursor *pgxpool.Pool) {
-	// Добавляем данные в базу, количество столбцов в таблице равняется 13
+	// Adding data to the database, the number of columns in the table is 12
 	_, err := cursor.Exec(context.Background(), `INSERT INTO Companies 
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);`, companyScope,
 		tags["<CONFORMED-NAME>"], tags["<CIK>"], tags["<ASSIGNED-SIC>"], tags["<PHONE>"],
@@ -80,7 +80,7 @@ func AddingDataToDb (tags map[string]string, tagsAddress map[string][]string, co
 }
 
 func CheckExistCik (basicInformation []string, cursor *pgxpool.Pool) bool {
-	// Проверяем, есть ли запись уже в базе, поиск ведём по cik (уникальному идентификатору
+	// Check if the record is already in the database, search by cik (unique identifier)
 
 	checkExistCik := basicInformation[1]
 	checkExistCik = strings.Replace(checkExistCik, "CIK>", "", 1)
@@ -101,7 +101,7 @@ func CheckExistCik (basicInformation []string, cursor *pgxpool.Pool) bool {
 
 }
 
-// Раздел, работающий с базой SIC-кодов
+// Section that works with the database of SIC codes
 
 func GetCompanyScope (cursor *pgxpool.Pool, sic string) string{
 	companyScope := ""
@@ -134,8 +134,8 @@ type sicCodes struct {
 
 
 func AddDataCSV (cursor *pgxpool.Pool) {
-	// Создает базу из файла CSV, где содержиться номер sic
-	// и соответствующее ему описание
+	// Creates a base from a CSV file containing sic
+	// and its corresponding description
 
 	var count int
 	err := cursor.QueryRow(context.Background(), `SELECT count(*) FROM sic_codes`).Scan(&count)
@@ -174,8 +174,7 @@ func AddDataCSV (cursor *pgxpool.Pool) {
 
 
 func readData(fileName string) ([][]string, error) {
-	// Эта функция не связана с добавлением в базу данных,
-	//но она используется при добавлениях данных из CSV файла
+	// Adding data to a CSV file
 
 	f, err := os.Open(fileName)
 
@@ -202,7 +201,7 @@ func readData(fileName string) ([][]string, error) {
 }
 
 
-// Раздел, где происходит работа с логами
+// The section where the work with logs takes place
 
 func CreateLogs (cursor *pgxpool.Pool) {
 
