@@ -1,77 +1,75 @@
-package ParserCompanies
+package main
 
 import (
-	"fmt"
 	"github.com/mholt/archiver/v3"
 	"io/fs"
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 
 func main () {
-
-	dirname := "files_companies"
-	// Получаем список архивов
-	archives, err := ioutil.ReadDir(dirname)
-	checkError(err)
-	if !(len(archives) == 0) {
-		extractionArchives(archives)
-	}
-}
-
-func checkError(err error) {
-	// Проверка на ошибки
+	dirWithArchives := pathForm("archives")
+	dirWithFiles := pathForm("files")
+	// Getting a list of archives
+	archives, err := ioutil.ReadDir(dirWithArchives)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal (err)
+	}
+	if !(len(archives) == 0) {
+		extractionArchives(archives, dirWithArchives, dirWithFiles )
 	}
 }
 
-func extractionArchives(archives []fs.FileInfo) {
-	// Итерируем список файлов и раскладываем по го рутинам
-
-	for _, archive := range archives {
-		// IsDir() это проверка на каталог
-		unpackingFiles(archive.Name())
-
-	}
-
-
-}
-
-func unpackingFiles(archive string) {
-	// Извлекаем файлы из архивов
-
-	// Чистим директорию во избежание ошибок
-	//cleaningFiles()
-
-	// Основная проблема тут заключается в том, что, судя по всему, в том разделе должен вызываться log.Fatal или другое прерывание программы, а вместо этого возвращается простой return,
-	// Она работает из-за этого некорректно
-
-	//Удаляем архив
-	defer func(name string) {
-		fmt.Println ("он файл удалил")
-		if r := recover(); r != nil {
-			fmt.Println("Recovered. Error:\n", r)
+func pathForm (path string) string {
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		// If the folder does not exist, then the program is launched through the binary
+		wd, err := os.Getwd()
+		if err != nil {
+			panic(err)
 		}
+		parent := filepath.Dir(wd)
+
+		path = filepath.Join(parent, path)
+	}
+
+	return path
+
+}
+
+
+func extractionArchives(archives []fs.FileInfo, dirWithArchives string, dirWithFiles string) {
+	for _, archive := range archives {
+		unpackingFiles(archive.Name(), dirWithArchives, dirWithFiles)
+	}
+}
+
+func unpackingFiles(archive string, dirWithArchives string, dirWithFiles string) {
+	// Extracting files from archives
+
+	pathArchive := filepath.Join(dirWithArchives, archive)
+
+	//Delete the archive
+	defer func(name string) {
 		err := os.Remove(name)
 		if err != nil {
 			log.Fatal("delete archive failed: ", err)
 
 		}
-	}("files_companies/" + archive)
+	}(pathArchive)
 
 	typeFile := archive[len(archive)-6:]
-	fmt.Println(typeFile)
 	if !(typeFile == "tar.gz") {
-		fmt.Println("оно обнаружило, что формат не совпадает")
+		// format does not match
 		return
 	}
-	//Распаковываем архив
-	err := archiver.Unarchive("files_companies/" + archive, "files/") //+ year + "/"
+	//Unpacking the archive
+	err := archiver.Unarchive(pathArchive, dirWithFiles)
 	if err != nil {
-		fmt.Println("open archive failed: ", err)
+		// open archive failed
 		return
 	}
 

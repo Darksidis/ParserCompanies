@@ -1,4 +1,4 @@
-package ParserCompanies
+package main
 
 import (
 	"context"
@@ -26,100 +26,17 @@ func ConnectingToTheBase () *pgxpool.Pool{
 	cursor, err := pgxpool.Connect(context.Background(), databaseUrl)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		os.Exit(1)
+		log.Fatal("Unable to connect to database: ", err)
 	}
 	return cursor
 }
-
-func GetCompanyScope (cursor *pgxpool.Pool, sic string) string{
-	companyScope := ""
-	fmt.Println(sic)
-	if !(sic == "0000") && !(len(sic) == 0) {
-		err := cursor.QueryRow(context.Background(), "SELECT description FROM sic_codes WHERE sic=$1", sic).Scan(&companyScope)
-		fmt.Println("Ааа?")
-		fmt.Println ("CompanyScope: ", companyScope)
-		fmt.Println ("sic: ", sic)
-		fmt.Println ("sic: ", len(sic))
-
-		if err != nil {
-			if err == pgx.ErrNoRows {
-				fmt.Println("No Rows")
-				industrialGroup := sic[0:2]
-				fmt.Println (industrialGroup)
-				err = cursor.QueryRow(context.Background(), "SELECT description FROM sic_codes WHERE industry_group=$1", industrialGroup).Scan(&companyScope)
-				fmt.Println ("CompanyScopeV2: ", companyScope)
-			} else {
-				log.Fatal("GetCompanyScope: ", err)
-			}
-
-		}
-	}
-
-	return companyScope
-
-}
-
-
-type sicCodes struct {
-	division string
-	majorGroup string
-	industryGroup string
-	sic string
-	description string
-
-}
-
-
-func AddDataCSV (cursor *pgxpool.Pool) {
-	// Создает базу из файла CSV, где содержиться номер sic
-	// и соответствующее ему описание
-
-	var count int
-	err := cursor.QueryRow(context.Background(), `SELECT count(*) FROM sic_codes`).Scan(&count)
-	checkError(err)
-
-	if count == 0 {
-		records, err := readData("sic-codes.csv")
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		for _, record := range records {
-			fmt.Println (record)
-
-			data := sicCodes{
-				division:  record[0],
-				majorGroup: record[1],
-				industryGroup:   record[2],
-				sic: record[3],
-				description: record[4],
-			}
-			_, err := cursor.Exec(context.Background(), `INSERT INTO sic_codes 
-		VALUES ($1, $2, $3, $4, $5);`, data.division, data.majorGroup, data.industryGroup, data.sic, data.description,
-			)
-
-			if err != nil {
-				log.Fatal("AddDataCSV failed: ", err)
-			}
-
-
-			fmt.Println(data)
-		}
-	}
-
-
-}
-
-
 
 func CreateBaseOrDoNothing (cursor *pgxpool.Pool) {
 	// Создаём таблицу в случае её отсутствия
 
 	_, err := cursor.Exec(context.Background(),
-		"create table if not exists Companies (date TEXT NULL, " +
-			"company_scope TEXT NULL, " +
+		"create table if not exists Companies" +
+			" (company_scope TEXT NULL, " +
 			"name TEXT NULL, " +
 			"cik TEXT NULL, " +
 			"sic TEXT NULL, " +
@@ -143,15 +60,14 @@ func CreateBaseOrDoNothing (cursor *pgxpool.Pool) {
 			"description TEXT NULL) ")
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Create Base failed: %v\n", err)
-		os.Exit(1)
+		log.Fatal("Create Base failed: ", err)
 	}
 }
 
-func AddingDataToDb (date string, tags map[string]string, tagsAddress map[string][]string, companyScope string, cursor *pgxpool.Pool) {
+func AddingDataToDb (tags map[string]string, tagsAddress map[string][]string, companyScope string, cursor *pgxpool.Pool) {
 	// Добавляем данные в базу, количество столбцов в таблице равняется 13
 	_, err := cursor.Exec(context.Background(), `INSERT INTO Companies 
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14);`, date, companyScope,
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);`, companyScope,
 		tags["<CONFORMED-NAME>"], tags["<CIK>"], tags["<ASSIGNED-SIC>"], tags["<PHONE>"],
 		tagsAddress["<STREET1>"][0], tagsAddress["<CITY>"][0], tagsAddress["<STATE>"][0], tagsAddress["<ZIP>"][0],
 		tagsAddress["<STREET1>"][1], tagsAddress["<CITY>"][1], tagsAddress["<STATE>"][1], tagsAddress["<ZIP>"][1],
@@ -159,8 +75,7 @@ func AddingDataToDb (date string, tags map[string]string, tagsAddress map[string
 
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "AddingDataDb failed: %v\n", err)
-		os.Exit(1)
+		log.Fatal( "AddingDataDb failed: ", err)
 	}
 }
 
@@ -186,11 +101,81 @@ func CheckExistCik (basicInformation []string, cursor *pgxpool.Pool) bool {
 
 }
 
+// Раздел, работающий с базой SIC-кодов
 
-// Эта функция не связана с добавлением в базу данных,
-//но она используется при добавлениях данных из CSV файла
+func GetCompanyScope (cursor *pgxpool.Pool, sic string) string{
+	companyScope := ""
+	if !(sic == "0000") && !(len(sic) == 0) {
+		err := cursor.QueryRow(context.Background(), "SELECT description FROM sic_codes WHERE sic=$1", sic).Scan(&companyScope)
+
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				industrialGroup := sic[0:2]
+				err = cursor.QueryRow(context.Background(), "SELECT description FROM sic_codes WHERE industry_group=$1", industrialGroup).Scan(&companyScope)
+			} else {
+				log.Fatal("GetCompanyScope: ", err)
+			}
+		}
+	}
+
+	return companyScope
+
+}
+
+
+type sicCodes struct {
+	division string
+	majorGroup string
+	industryGroup string
+	sic string
+	description string
+
+}
+
+
+func AddDataCSV (cursor *pgxpool.Pool) {
+	// Создает базу из файла CSV, где содержиться номер sic
+	// и соответствующее ему описание
+
+	var count int
+	err := cursor.QueryRow(context.Background(), `SELECT count(*) FROM sic_codes`).Scan(&count)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if count == 0 {
+		records, err := readData("sic-codes.csv")
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, record := range records {
+
+			data := sicCodes{
+				division:  record[0],
+				majorGroup: record[1],
+				industryGroup:   record[2],
+				sic: record[3],
+				description: record[4],
+			}
+			_, err := cursor.Exec(context.Background(), `INSERT INTO sic_codes 
+		VALUES ($1, $2, $3, $4, $5);`, data.division, data.majorGroup, data.industryGroup, data.sic, data.description,
+			)
+
+			if err != nil {
+				log.Fatal("AddDataCSV failed: ", err)
+			}
+		}
+	}
+
+
+}
+
 
 func readData(fileName string) ([][]string, error) {
+	// Эта функция не связана с добавлением в базу данных,
+	//но она используется при добавлениях данных из CSV файла
 
 	f, err := os.Open(fileName)
 
@@ -216,3 +201,46 @@ func readData(fileName string) ([][]string, error) {
 	return records, nil
 }
 
+
+// Раздел, где происходит работа с логами
+
+func CreateLogs (cursor *pgxpool.Pool) {
+
+	_, err := cursor.Exec(context.Background(),
+		"create table if not exists logs_data " +
+		"(logs TEXT NULL)")
+
+	if err != nil {
+		log.Fatal ("create logs-database failed: ", err)
+	}
+
+}
+
+func GetLogs (cursor *pgxpool.Pool) string{
+	var rawData string
+
+	err := cursor.QueryRow(context.Background(), "SELECT logs FROM logs_data LIMIT 1").Scan(&rawData)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+		} else {
+			log.Fatal ("Getting logs failed: ", err)
+	}
+	}
+
+	return rawData
+}
+
+func SendLogs (cursor *pgxpool.Pool, json []byte) {
+	_, err := cursor.Exec(context.Background(), `DELETE FROM logs_data`)
+
+	if err != nil {
+		log.Fatal ("clean logs failed: ", err)
+	}
+
+	_, err = cursor.Exec(context.Background(), `INSERT INTO logs_data VALUES ($1)`, json)
+
+	if err != nil {
+		log.Fatal ("add logs failed: ", err)
+	}
+}
