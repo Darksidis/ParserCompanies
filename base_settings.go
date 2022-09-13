@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	username = "postgres"
-	password = "1"
+	username = ""
+	password = ""
 	host = "localhost"
 	port = "5433"
-	db_name = "postgres"
+	db_name = ""
 )
 
 func ConnectingToTheBase () *pgxpool.Pool{
