@@ -18,7 +18,7 @@ The parser downloads the archive from the site "sec.gov", unpacks it, and sends 
 ### How to run it
 --------
 
-You can run through the file manager
+you can run through action manager
 ```
 go run main.go
 ```
