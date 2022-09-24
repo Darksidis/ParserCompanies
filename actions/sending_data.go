@@ -18,7 +18,6 @@ func main () {
 	files, err := ioutil.ReadDir(path)
 	checkError(err)
 
-	// Если архивы присутствуют, начинаем их распаковку
 	if !(len(files) == 0) {
 		cursor := ConnectingToTheBase()
 		CreateBaseOrDoNothing(cursor)
@@ -30,12 +29,33 @@ func main () {
 }
 
 func checkError(err error) {
-	// Проверка на ошибки
+	// check errors
+	
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
+<<<<<<< HEAD:actions/sending_data.go
+=======
+func pathForm (path string) string {
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		// If the folder does not exist, then the program is launched through the binary, you need to go to the directory above
+		wd, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		parent := filepath.Dir(wd)
+
+		path = filepath.Join(parent, path)
+	}
+
+	return path
+
+}
+
+>>>>>>> f7b96689808c846da30d620318e5872b8e422847:sending_data.go
 
 func workWithGorotines (cursor *pgxpool.Pool, path string) {
 	// Working with goroutines, creating two channels

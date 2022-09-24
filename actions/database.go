@@ -16,6 +16,7 @@ import (
 
 
 func ConnectingToTheBase () *pgxpool.Pool{
+<<<<<<< HEAD:actions/database.go
 	fileName := "db"
 	username := goDotEnvVariable(fileName, "USERNAME_DB")
 	password := goDotEnvVariable(fileName, "PASSWORD")
@@ -25,6 +26,10 @@ func ConnectingToTheBase () *pgxpool.Pool{
 
 	// Connecting to the base
 	databaseUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", username, password, host, port, dbName)
+=======
+	// Connecting to the base
+	databaseUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", username, password, host, port, db_name)
+>>>>>>> f7b96689808c846da30d620318e5872b8e422847:base_settings.go
 	// Initializing the connection cursor
 	cursor, err := pgxpool.Connect(context.Background(), databaseUrl)
 
@@ -191,7 +196,10 @@ func AddDataCSV (cursor *pgxpool.Pool) {
 
 func readData(fileName string) ([][]string, error) {
 	// Adding data to a CSV file
+<<<<<<< HEAD:actions/database.go
 
+=======
+>>>>>>> f7b96689808c846da30d620318e5872b8e422847:base_settings.go
 
 	f, err := os.Open(fileName)
 
@@ -260,6 +268,7 @@ func SendLogs (cursor *pgxpool.Pool, json []byte) {
 		log.Fatal ("add logs failed: ", err)
 	}
 }
+<<<<<<< HEAD:actions/database.go
 
 // Form path
 
@@ -270,3 +279,5 @@ func PathForm (parentFolder string, path string) string {
 	return path
 
 }
+=======
+>>>>>>> f7b96689808c846da30d620318e5872b8e422847:base_settings.go
