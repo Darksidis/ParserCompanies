@@ -15,6 +15,11 @@ Golang, PostgreSQL
 
 The parser downloads the archive from the site "sec.gov", unpacks it, and sends the data to the database using regular expressions
 
+**data** 
+```
+company scope, name, cik, sic, phone, business[] and mail address[]
+```
+
 ### How to run it
 --------
 
