@@ -23,8 +23,6 @@ func ConnectingToTheBase () *pgxpool.Pool{
 	port := goDotEnvVariable(fileName, "PORT")
 	dbName := goDotEnvVariable(fileName, "DB_NAME")
 
-	fmt.Println(username)
-
 	// Connecting to the base
 	databaseUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", username, password, host, port, dbName)
 	// Initializing the connection cursor

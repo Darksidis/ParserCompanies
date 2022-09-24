@@ -16,7 +16,6 @@ import (
 
 func main () {
 	jsonData := goDotEnvVariable("actionsList", "ACTIONS")
-	fmt.Println(jsonData)
 	var actions map[string]bool
 	err := json.Unmarshal([]byte(jsonData), &actions)
 	if err != nil {
@@ -38,7 +37,6 @@ func main () {
 		var wg sync.WaitGroup
 		wg.Add(countActions)
 		for i := 0; i < countActions; i++ {
-			fmt.Println(i)
 			go execCom(listActions[i], &wg)
 		}
 
@@ -59,7 +57,6 @@ func execCom (action string, wg *sync.WaitGroup) {
 	path := filepath.Join("actions", action)
 	pathDb := filepath.Join("actions", "database.go")
 	cmd := exec.Command("go", "run", path, pathDb)
-	fmt.Println(cmd)
 	err := cmd.Run()
 	//out, err := cmd.Output()
 	//fmt.Println (string(out))

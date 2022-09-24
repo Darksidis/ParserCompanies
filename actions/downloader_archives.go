@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-	fmt.Println("this is download archives")
 	cursor := ConnectingToTheBase()
 	CreateLogs(cursor)
 
