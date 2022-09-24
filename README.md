@@ -1,56 +1,31 @@
 # ParserCompanies
 
-## About
+### About
 -------
 
 Parser that generates a dataset containing information about US companies.
 
-## What did I use
+### What did I use
 -------
 
 Golang, PostgreSQL
 
-## How it works
+### How it works
 --------
 
 The parser downloads the archive from the site "sec.gov", unpacks it, and sends the data to the database using regular expressions
 
-## How to run it
+### How to run it
 --------
 
-### Through "go run"
---------
-#### Download archives
+You can run through the file manager
 ```
-go run downloader_archives.go base_settings.go
-```
-#### Unpacking archives
-```
-go run unpacking_archives.go
+go run main.go
 ```
 
-#### Sending Data
+In the list of actions (actionsList.env), you can also specify which files will be launched (true - the file will be launched, false - the file will be skipped, observe case)
 ```
-go run sending_data.go base_settings.go
-```
-
-### Through binaries
---------
-```
-cd bin
-```
-#### > Windows needs to run exe files
-
-#### Download archives
-```
-./downloader_archives
-```
-#### Unpacking archives
-```
-./unpacking_archives.
+ACTIONS = {"sending_data.go" : true, "unpacking_archives.go" : true, "downloader_archives.go" : true}
 ```
 
-#### Sending Data
-```
-./sending_data
-```
+You also need to specify in the environment variables (db.env) the data of your database
