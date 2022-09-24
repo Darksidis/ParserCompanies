@@ -25,7 +25,14 @@ go run main.go
 
 In the list of actions (actionsList.env), you can also specify which files will be launched (true - the file will be launched, false - the file will be skipped, observe case)
 ```
-ACTIONS = {"sending_data.go" : true, "unpacking_archives.go" : true, "downloader_archives.go" : true}
+{"sending_data.go" : true, "unpacking_archives.go" : true, "downloader_archives.go" : true}
 ```
 
 You also need to specify in the environment variables (db.env) the data of your database
+```
+USERNAME_DB=
+PASSWORD=
+HOST=
+PORT=
+DB_NAME=
+```
