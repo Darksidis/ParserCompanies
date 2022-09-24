@@ -3,7 +3,13 @@ module ParserCompanies
 go 1.17
 
 require (
-	github.com/anaskhan96/soup v1.2.5 // indirect
+	github.com/anaskhan96/soup v1.2.5
+	github.com/jackc/pgx/v4 v4.17.2
+	github.com/joho/godotenv v1.4.0
+	github.com/mholt/archiver/v3 v3.5.1
+)
+
+require (
 	github.com/andybalholm/brotli v1.0.1 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/golang/snappy v0.0.2 // indirect
@@ -14,11 +20,9 @@ require (
 	github.com/jackc/pgproto3/v2 v2.3.1 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.12.0 // indirect
-	github.com/jackc/pgx/v4 v4.17.2 // indirect
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/klauspost/compress v1.11.4 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
-	github.com/mholt/archiver/v3 v3.5.1 // indirect
 	github.com/nwaples/rardecode v1.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.2 // indirect
 	github.com/ulikunitz/xz v0.5.9 // indirect
