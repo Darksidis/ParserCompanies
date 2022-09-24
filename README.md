@@ -18,39 +18,9 @@ The parser downloads the archive from the site "sec.gov", unpacks it, and sends 
 ## How to run it
 --------
 
-### Through "go run"
---------
-#### Download archives
+You can run through the file manager
 ```
-go run downloader_archives.go base_settings.go
-```
-#### Unpacking archives
-```
-go run unpacking_archives.go
+go run main.go
 ```
 
-#### Sending Data
-```
-go run sending_data.go base_settings.go
-```
-
-### Through binaries
---------
-```
-cd bin
-```
-#### > Windows needs to run exe files
-
-#### Download archives
-```
-./downloader_archives
-```
-#### Unpacking archives
-```
-./unpacking_archives.
-```
-
-#### Sending Data
-```
-./sending_data
-```
+In the list of actions, you can also specify which files will be launched (true - the file will be launched, false - the file will be skipped, observe case)
