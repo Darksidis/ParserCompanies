@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	fmt.Println("download archives start")
 	cursor := ConnectingToTheBase()
 	CreateLogs(cursor)
 
@@ -28,14 +29,14 @@ func main() {
 
 	years := findElements(doc)
 
-	dat :=  GetLogs(cursor)
+	dat := GetLogs(cursor)
 
 	stopTrigger := [3]int{1, 1, 1}
 	// The condition handles the case if logs are present
 	if !(len(dat) == 0) {
 		err = json.Unmarshal([]byte(dat), &logs)
 		if err != nil {
-			log.Fatal ("json processing failed: ", err)
+			log.Fatal("json processing failed: ", err)
 		}
 
 		for index, _ := range stopTrigger {
@@ -48,7 +49,7 @@ func main() {
 
 		year := year.Attrs()["href"]
 
-		if !(year == logs["year"]) && stopTrigger[0] == 0{
+		if !(year == logs["year"]) && stopTrigger[0] == 0 {
 			continue
 		}
 		stopTrigger[0] = 1
@@ -68,7 +69,7 @@ func main() {
 
 			semester := sem.Attrs()["href"]
 
-			if !(semester == logs["semester"]) && stopTrigger[1] == 0{
+			if !(semester == logs["semester"]) && stopTrigger[1] == 0 {
 				continue
 			}
 
@@ -89,7 +90,7 @@ func main() {
 
 				archive := arch.Attrs()["href"]
 
-				if !(archive == logs["archive"]) && stopTrigger[2] == 0{
+				if !(archive == logs["archive"]) && stopTrigger[2] == 0 {
 					continue
 				}
 
@@ -116,20 +117,17 @@ func main() {
 
 				jsonString, err := json.Marshal(logs)
 				if err != nil {
-					log.Fatal ("map to json process failed: ", err)
+					log.Fatal("map to json process failed: ", err)
 				}
 
 				SendLogs(cursor, jsonString)
 			}
 
-
-
 		}
 	}
 }
 
-
-func sendingRequest (url string) (*http.Response, error) {
+func sendingRequest(url string) (*http.Response, error) {
 
 	client := &http.Client{}
 
@@ -156,7 +154,6 @@ func getHtmlPage(resp *http.Response) (string, error) {
 
 	return string(body), nil
 
-
 }
 
 func downloadFile(filepath string, resp *http.Response) (err error) {
@@ -164,7 +161,7 @@ func downloadFile(filepath string, resp *http.Response) (err error) {
 
 	// Create file
 	out, err := os.Create(filepath)
-	if err != nil  {
+	if err != nil {
 		return err
 	}
 	defer out.Close()
@@ -176,18 +173,17 @@ func downloadFile(filepath string, resp *http.Response) (err error) {
 
 	// Writing a file
 	_, err = io.Copy(out, resp.Body)
-	if err != nil  {
+	if err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func findElements (doc soup.Root) []soup.Root {
+func findElements(doc soup.Root) []soup.Root {
 	// We parse the markup and find the necessary elements
 
 	elements := doc.Find("table", "summary", "heding").FindAll("a")
 
 	return elements
 }
-

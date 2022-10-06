@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"io/fs"
 	"io/ioutil"
@@ -11,34 +12,35 @@ import (
 	"strings"
 )
 
+func main() {
 
-func main () {
-
+	fmt.Println("sending data start")
 	path := PathForm("storage", "files")
-	files, err := ioutil.ReadDir(path)
-	checkError(err)
 
-	if !(len(files) == 0) {
-		cursor := ConnectingToTheBase()
-		CreateBaseOrDoNothing(cursor)
-		AddDataCSV(cursor)
-		workWithGorotines(cursor, path)
+	for {
+		files, err := ioutil.ReadDir(path)
+		checkError(err)
 
+		if !(len(files) == 0) {
+			cursor := ConnectingToTheBase()
+			CreateBaseOrDoNothing(cursor)
+			AddDataCSV(cursor)
+			workWithGorotines(cursor, path)
+
+		}
 	}
 
 }
 
 func checkError(err error) {
 	// check errors
-	
+
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 }
 
-<<<<<<< HEAD:actions/sending_data.go
-=======
-func pathForm (path string) string {
+func pathForm(path string) string {
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
 		// If the folder does not exist, then the program is launched through the binary, you need to go to the directory above
@@ -55,9 +57,7 @@ func pathForm (path string) string {
 
 }
 
->>>>>>> f7b96689808c846da30d620318e5872b8e422847:sending_data.go
-
-func workWithGorotines (cursor *pgxpool.Pool, path string) {
+func workWithGorotines(cursor *pgxpool.Pool, path string) {
 	// Working with goroutines, creating two channels
 	//(one works with opening and reading files and the other with parsing it)
 
@@ -74,7 +74,7 @@ func workWithGorotines (cursor *pgxpool.Pool, path string) {
 	}
 
 	// This specifies how many parsed lines should be read at the same time.
-	countLines  := 100
+	countLines := 100
 
 	for i := 0; i < countLines; i++ {
 		go parsingInfoUsingRegexp(lineChan, cursor)
@@ -85,8 +85,6 @@ func workWithGorotines (cursor *pgxpool.Pool, path string) {
 		fileChan <- f
 	}
 
-
-
 }
 
 func sendDataToChannel(fileChan chan fs.FileInfo, lineChan chan string, path string) {
@@ -95,7 +93,7 @@ func sendDataToChannel(fileChan chan fs.FileInfo, lineChan chan string, path str
 
 	for {
 		select {
-		case _, ok := <- lineChan:
+		case _, ok := <-lineChan:
 			if !(ok) {
 				break
 			}
@@ -114,8 +112,7 @@ func sendDataToChannel(fileChan chan fs.FileInfo, lineChan chan string, path str
 	}
 }
 
-
-func OpenAndReadFile(file fs.FileInfo, dirname string) []byte{
+func OpenAndReadFile(file fs.FileInfo, dirname string) []byte {
 	statusFile := strings.Contains(file.Name(), ".corr")
 
 	pathFile := filepath.Join(dirname, file.Name())
@@ -124,7 +121,7 @@ func OpenAndReadFile(file fs.FileInfo, dirname string) []byte{
 	defer func(name string) {
 		err := os.Remove(name)
 		if err != nil {
-			log.Fatal ("delete file failed: ", err)
+			log.Fatal("delete file failed: ", err)
 
 		}
 	}(pathFile)
@@ -156,21 +153,21 @@ func parsingInfoUsingRegexp(lineChan chan string, cursor *pgxpool.Pool) (map[str
 				break
 			}
 
-			data = strings.Replace(data,"\n", "", -1)
+			data = strings.Replace(data, "\n", "", -1)
 
 			// We find the name of the companies, its CIK and SIC using a regular expression
-			basicInfoReg, err :=  regexp.Compile("CONFORMED-NAME>(.*?)" + "<CIK>(.*?)" + "<ASSIGNED-SIC>(.*?)<")
-			checkError (err)
+			basicInfoReg, err := regexp.Compile("CONFORMED-NAME>(.*?)" + "<CIK>(.*?)" + "<ASSIGNED-SIC>(.*?)<")
+			checkError(err)
 			basicInformation := basicInfoReg.FindAllString(data, -1)
 
 			// Finding a business address using a regular expression
 			businessReg, err := regexp.Compile("<BUSINESS-ADDRESS>(.*?)" + "</BUSINESS-ADDRESS>")
-			checkError (err)
+			checkError(err)
 			businessAddress := businessReg.FindAllString(data, -1)
 
 			// Finding a home address with a regular expression
 			mailReg, err := regexp.Compile("<MAIL-ADDRESS>(.*?)" + "</MAIL-ADDRESS>")
-			checkError (err)
+			checkError(err)
 			mailAddress := mailReg.FindAllString(data, -1)
 
 			routes := CreatingArraysData(basicInformation, businessAddress, mailAddress, cursor)
@@ -186,12 +183,10 @@ func parsingInfoUsingRegexp(lineChan chan string, cursor *pgxpool.Pool) (map[str
 			AddingDataToDb(tags, tagsAddress, companyScope, cursor)
 		}
 
-
 	}
 }
 
-
-func CreatingArraysData (basicInformation []string, businessAddress []string, mailAddress []string, cursor *pgxpool.Pool) [][]string{
+func CreatingArraysData(basicInformation []string, businessAddress []string, mailAddress []string, cursor *pgxpool.Pool) [][]string {
 	// We form three lists with tags, and add them to the array of arrays for further merging
 
 	// If the main data is empty, then skip the iteration
@@ -229,13 +224,13 @@ func CreatingArraysData (basicInformation []string, businessAddress []string, ma
 	return routes
 
 }
-func addingDataToMap(routes [][]string) (map[string]string, map[string][]string){
+func addingDataToMap(routes [][]string) (map[string]string, map[string][]string) {
 	// Here we add data to the map
 
 	// If the array of arrays is empty, then either the element is already in the database, or something has happened,
 	// return empty maps
 	if len(routes) == 0 {
-		tags :=  map[string]string{}
+		tags := map[string]string{}
 		tagsAddress := map[string][]string{}
 		return tags, tagsAddress
 	}
@@ -246,16 +241,16 @@ func addingDataToMap(routes [][]string) (map[string]string, map[string][]string)
 	}
 
 	// Maps. All information received will be added to them.
-	tags := map[string]string{"<CONFORMED-NAME>":"",
-		"<CIK>":"",
-		"<ASSIGNED-SIC>":"",
-		"<PHONE>": "",
+	tags := map[string]string{"<CONFORMED-NAME>": "",
+		"<CIK>":          "",
+		"<ASSIGNED-SIC>": "",
+		"<PHONE>":        "",
 	}
 	tagsAddress := map[string][]string{"<STREET1>": {"", ""},
-		"<CITY>":{"", ""},
-		"<STATE>":{"", ""},
-		"<ZIP>":{"", ""},
-		"<STREET2>":{"", ""}}
+		"<CITY>":    {"", ""},
+		"<STATE>":   {"", ""},
+		"<ZIP>":     {"", ""},
+		"<STREET2>": {"", ""}}
 
 	// Index number, 0 equals business address, 1 equals home
 	busOrMail := 0
@@ -274,7 +269,7 @@ func addingDataToMap(routes [][]string) (map[string]string, map[string][]string)
 			busOrMail = 1
 		}
 		// If the tag is in the map, add it
-		if _, ok :=  tags[tag]; ok {
+		if _, ok := tags[tag]; ok {
 			tags[tag] = el
 		}
 		if _, ok := tagsAddress[tag]; ok {
@@ -285,5 +280,3 @@ func addingDataToMap(routes [][]string) (map[string]string, map[string][]string)
 	return tags, tagsAddress
 
 }
-
-

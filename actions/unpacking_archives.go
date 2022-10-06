@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/mholt/archiver/v3"
 	"io/fs"
 	"io/ioutil"
@@ -9,23 +10,28 @@ import (
 	"path/filepath"
 )
 
-
-func main () {
-
+func main() {
+	fmt.Println("unpacking archives start")
 	dirWithArchives := PathForm("storage", "archives")
 	dirWithFiles := PathForm("storage", "files")
 	// Getting a list of archives
-	archives, err := ioutil.ReadDir(dirWithArchives)
-	if err != nil {
-		log.Fatal (err)
-	}
-	if !(len(archives) == 0) {
-		extractionArchives(archives, dirWithArchives, dirWithFiles )
+	for {
+
+		archives, err := ioutil.ReadDir(dirWithArchives)
+		check(err)
+		if !(len(archives) == 0) {
+			extractionArchives(archives, dirWithArchives, dirWithFiles)
+		}
 	}
 }
 
+func check(err error) {
+	// check errors
 
-
+	if err != nil {
+		panic(err)
+	}
+}
 
 func extractionArchives(archives []fs.FileInfo, dirWithArchives string, dirWithFiles string) {
 	for _, archive := range archives {
