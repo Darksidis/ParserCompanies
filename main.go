@@ -51,7 +51,7 @@ func check(err error) {
 }
 
 func execCom(action string, wg *sync.WaitGroup) {
-	//defer wg.Done()
+	defer wg.Done()
 
 	files, err := ioutil.ReadDir("actions")
 	check(err)
